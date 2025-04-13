@@ -3,11 +3,11 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const dotenv = require("dotenv");
 
-const app = express(); // ✅ app is created before use
+const app = express(); // app created before use
 dotenv.config();
 connectDB();
 
-app.use(cors()); // ✅ Now this is in the right place
+app.use(cors());
 app.use(express.json());
 
 app.use("/api/users", require("./routes/userRoutes"));
