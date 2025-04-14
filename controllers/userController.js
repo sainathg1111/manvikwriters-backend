@@ -3,7 +3,7 @@ const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// @desc    Register new user
+// @desc    Register a new user
 // @route   POST /api/users/register
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
@@ -20,8 +20,7 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new Error("User already exists");
   }
 
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   const user = await User.create({
     name,
@@ -41,7 +40,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Authenticate a user & get token
+// @desc    Authenticate user & get token
 // @route   POST /api/users/login
 // @access  Public
 const loginUser = asyncHandler(async (req, res) => {
@@ -62,39 +61,25 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Change password
+// @desc    Change user password
 // @route   POST /api/users/change-password
 // @access  Private
 const changePassword = asyncHandler(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
-  if (!currentPassword || !newPassword) {
-    res.status(400);
-    throw new Error("Please provide current and new password");
-  }
+  const user = await User.findById(req.user.id);
 
-  const user = await User.findById(req.user._id);
-
-  if (!user) {
-    res.status(404);
-    throw new Error("User not found");
-  }
-
-  const isMatch = await bcrypt.compare(currentPassword, user.password);
-
-  if (!isMatch) {
+  if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
     res.status(401);
     throw new Error("Current password is incorrect");
   }
 
-  const salt = await bcrypt.genSalt(10);
-  user.password = await bcrypt.hash(newPassword, salt);
+  user.password = await bcrypt.hash(newPassword, 10);
   await user.save();
 
   res.json({ message: "Password updated successfully" });
 });
 
-// Generate JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: "30d",
