@@ -18,8 +18,11 @@ exports.createOrder = async (req, res) => {
 // @access  Private (only students or writers can see their orders)
 exports.getOrdersByUser = async (req, res) => {
   try {
-    const filter = req.user.role === 'writer' ? { writer: req.user.id } : { student: req.user.id };
-    const orders = await Order.find(filter).populate('writer student', 'name email');
+    const filter = req.user.role === 'writer'
+      ? { assignedWriter: req.user.id }
+      : { student: req.user.id };
+
+    const orders = await Order.find(filter).populate('assignedWriter student', 'name email');
     res.status(200).json(orders);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -31,7 +34,7 @@ exports.getOrdersByUser = async (req, res) => {
 // @access  Private (only students and writers can access order details)
 exports.getOrderById = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).populate('writer student', 'name email');
+    const order = await Order.findById(req.params.id).populate('assignedWriter student', 'name email');
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
@@ -41,3 +44,14 @@ exports.getOrderById = async (req, res) => {
   }
 };
 
+// @desc    Get all orders assigned to the writer
+// @route   GET /api/orders/writer
+// @access  Private (writers only)
+exports.getWriterOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({ assignedWriter: req.user.id }).populate('student', 'name email');
+    res.status(200).json(orders);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
