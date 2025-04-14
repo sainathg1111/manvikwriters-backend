@@ -1,14 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { registerUser, loginUser, changePassword } = require("../controllers/userController");
-const { protect } = require("../middleware/authMiddleware");
 
-router.post("/register", registerUser);
-router.post("/login", loginUser);
-router.get("/me", protect, (req, res) => {
-  res.status(200).json(req.user);
+// 🧪 Test Route - Just to verify API is working
+router.get("/test", (req, res) => {
+  res.status(200).json({ message: "User route is working 🚀" });
 });
-router.post("/change-password", protect, changePassword); // ✅ Make sure this is added
 
 module.exports = router;
-
