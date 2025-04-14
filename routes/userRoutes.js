@@ -8,7 +8,7 @@ router.post("/login", loginUser);
 router.get("/me", protect, (req, res) => {
   res.status(200).json(req.user);
 });
-router.put("/change-password", protect, changePassword); // ✅ New route
+router.post("/change-password", protect, changePassword); // ✅ Make sure this is added
 
 module.exports = router;
 

@@ -41,11 +41,12 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Login user & get token
+// @desc    Authenticate a user & get token
 // @route   POST /api/users/login
 // @access  Public
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
+
   const user = await User.findOne({ email });
 
   if (user && (await bcrypt.compare(password, user.password))) {
@@ -61,44 +62,39 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get current user
-// @route   GET /api/users/me
-// @access  Private
-const getMe = asyncHandler(async (req, res) => {
-  res.status(200).json(req.user);
-});
-
 // @desc    Change password
 // @route   POST /api/users/change-password
 // @access  Private
 const changePassword = asyncHandler(async (req, res) => {
-  const { oldPassword, newPassword } = req.body;
+  const { currentPassword, newPassword } = req.body;
 
-  if (!oldPassword || !newPassword) {
+  if (!currentPassword || !newPassword) {
     res.status(400);
-    throw new Error("Please provide both old and new passwords");
+    throw new Error("Please provide current and new password");
   }
 
-  const user = await User.findById(req.user.id);
+  const user = await User.findById(req.user._id);
 
   if (!user) {
     res.status(404);
     throw new Error("User not found");
   }
 
-  const isMatch = await bcrypt.compare(oldPassword, user.password);
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+
   if (!isMatch) {
-    res.status(400);
-    throw new Error("Old password is incorrect");
+    res.status(401);
+    throw new Error("Current password is incorrect");
   }
 
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(newPassword, salt);
   await user.save();
 
-  res.status(200).json({ message: "Password updated successfully" });
+  res.json({ message: "Password updated successfully" });
 });
 
+// Generate JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: "30d",
@@ -108,7 +104,6 @@ const generateToken = (id) => {
 module.exports = {
   registerUser,
   loginUser,
-  getMe,
   changePassword,
 };
 
