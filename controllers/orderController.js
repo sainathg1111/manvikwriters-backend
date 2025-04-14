@@ -55,3 +55,22 @@ exports.getWriterOrders = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// ✅ NEW: Assign writer to an order
+// @desc    Assign a writer to an order
+// @route   PUT /api/orders/:id/assign
+// @access  Admin only
+exports.assignWriter = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    const { writerId } = req.body;
+    order.assignedWriter = writerId;
+    await order.save();
+
+    res.status(200).json({ message: "Writer assigned successfully", order });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

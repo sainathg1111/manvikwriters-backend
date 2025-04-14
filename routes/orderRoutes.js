@@ -5,19 +5,20 @@ const {
   getOrdersByUser,
   getOrderById,
   getWriterOrders,
+  assignWriterToOrder,
+  updateOrderStatus,
 } = require("../controllers/orderController");
-const { protect } = require("../middleware/authMiddleware");
+const authMiddleware = require("../middleware/auth");
 
-// 🧾 Create new order (students only)
-router.post("/", protect, createOrder);
+// 🔒 All routes below require authentication
+router.use(authMiddleware);
 
-// 📦 Get all orders for the logged-in user (student or writer)
-router.get("/", protect, getOrdersByUser);
-
-// 📄 Get details of a specific order
-router.get("/:id", protect, getOrderById);
-
-// ✍️ Get orders assigned to the writer
-router.get("/writer/orders", protect, getWriterOrders);
+// 📌 Routes
+router.post("/", createOrder);                        // Create order
+router.get("/", getOrdersByUser);                     // Get user orders
+router.get("/writer", getWriterOrders);               // Get writer's orders
+router.get("/:id", getOrderById);                     // Get order by ID
+router.put("/:id/assign", assignWriterToOrder);       // ✅ Assign writer
+router.put("/:id/status", updateOrderStatus);         // ✅ Update order status
 
 module.exports = router;
