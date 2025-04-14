@@ -1,9 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const { registerUser } = require("../controllers/userController");
 
-// 🧪 Test Route - Just to verify API is working
-router.get("/test", (req, res) => {
-  res.status(200).json({ message: "User route is working 🚀" });
-});
+router.post("/register", registerUser);
 
 module.exports = router;
